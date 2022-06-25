@@ -1,0 +1,8 @@
+language: java
+jdk:
+ - openjdk11
+deploy:
+  provider: heroku
+  api-key:
+    secure: 1446e687-9f78-4c0a-af90-d04a6ed8bdd8
+dist: trusty
