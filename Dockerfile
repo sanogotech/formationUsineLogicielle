@@ -20,7 +20,7 @@ FROM openjdk:8-jre-alpine
 WORKDIR /my-project
 
 # copy over the built artifact from the maven image
-COPY --from=maven target/springboot-starterkit-mysql-1.0.jar ./
+COPY --from=maven target/gestionassociation-1.0.jar ./
 
 # set the startup command to run your binary
-CMD ["java", "-jar", "./springboot-starterkit-mysql-1.0.jar"]
+CMD ["java", "-jar", "./gestionassociation-1.0.jar"]
