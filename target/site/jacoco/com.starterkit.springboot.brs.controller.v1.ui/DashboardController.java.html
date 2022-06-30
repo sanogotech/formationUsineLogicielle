@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DashboardController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.controller.v1.ui</a> &gt; <span class="el_source">DashboardController.java</span></div><h1>DashboardController.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.controller.v1.ui;
+
+import com.starterkit.springboot.brs.controller.v1.command.*;
+import com.starterkit.springboot.brs.dto.model.bus.AgencyDto;
+import com.starterkit.springboot.brs.dto.model.bus.BusDto;
+import com.starterkit.springboot.brs.dto.model.bus.StopDto;
+import com.starterkit.springboot.brs.dto.model.bus.TripDto;
+import com.starterkit.springboot.brs.dto.model.user.UserDto;
+import com.starterkit.springboot.brs.service.BusReservationService;
+import com.starterkit.springboot.brs.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+@Controller
+<span class="fc" id="L29">public class DashboardController {</span>
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private BusReservationService busReservationService;
+
+    @GetMapping(value = &quot;/dashboard&quot;)
+    public ModelAndView dashboard() {
+<span class="nc" id="L39">        ModelAndView modelAndView = new ModelAndView(&quot;dashboard&quot;);</span>
+<span class="nc" id="L40">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L41">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L42">        modelAndView.addObject(&quot;currentUser&quot;, userDto);</span>
+<span class="nc" id="L43">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L44">        return modelAndView;</span>
+    }
+
+    @GetMapping(value = &quot;/agency&quot;)
+    public ModelAndView agencyDetails() {
+<span class="nc" id="L49">        ModelAndView modelAndView = new ModelAndView(&quot;agency&quot;);</span>
+<span class="nc" id="L50">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L51">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L52">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L53">        AgencyFormCommand agencyFormCommand = new AgencyFormCommand()</span>
+<span class="nc" id="L54">                .setAgencyName(agencyDto.getName())</span>
+<span class="nc" id="L55">                .setAgencyDetails(agencyDto.getDetails());</span>
+<span class="nc" id="L56">        modelAndView.addObject(&quot;agencyFormData&quot;, agencyFormCommand);</span>
+<span class="nc" id="L57">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc" id="L58">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L59">        return modelAndView;</span>
+    }
+
+    @PostMapping(value = &quot;/agency&quot;)
+    public ModelAndView updateAgency(@Valid @ModelAttribute(&quot;agencyFormData&quot;) AgencyFormCommand agencyFormCommand, BindingResult bindingResult) {
+<span class="nc" id="L64">        ModelAndView modelAndView = new ModelAndView(&quot;agency&quot;);</span>
+<span class="nc" id="L65">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L66">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L67">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L68">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc" id="L69">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (!bindingResult.hasErrors()) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            if (agencyDto != null) {</span>
+<span class="nc" id="L72">                agencyDto.setName(agencyFormCommand.getAgencyName())</span>
+<span class="nc" id="L73">                        .setDetails(agencyFormCommand.getAgencyDetails());</span>
+<span class="nc" id="L74">                busReservationService.updateAgency(agencyDto, null);</span>
+            }
+        }
+<span class="nc" id="L77">        return modelAndView;</span>
+    }
+
+    @GetMapping(value = &quot;/bus&quot;)
+    public ModelAndView busDetails() {
+<span class="nc" id="L82">        ModelAndView modelAndView = new ModelAndView(&quot;bus&quot;);</span>
+<span class="nc" id="L83">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L84">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L85">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L86">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc" id="L87">        modelAndView.addObject(&quot;busFormData&quot;, new BusFormCommand());</span>
+<span class="nc" id="L88">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L89">        return modelAndView;</span>
+    }
+
+    @PostMapping(value = &quot;/bus&quot;)
+    public ModelAndView addNewBus(@Valid @ModelAttribute(&quot;busFormData&quot;) BusFormCommand busFormCommand, BindingResult bindingResult) {
+<span class="nc" id="L94">        ModelAndView modelAndView = new ModelAndView(&quot;bus&quot;);</span>
+<span class="nc" id="L95">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L96">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L97">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L98">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L99">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (!bindingResult.hasErrors()) {</span>
+            try {
+<span class="nc" id="L102">                BusDto busDto = new BusDto()</span>
+<span class="nc" id="L103">                        .setCode(busFormCommand.getCode())</span>
+<span class="nc" id="L104">                        .setCapacity(busFormCommand.getCapacity())</span>
+<span class="nc" id="L105">                        .setMake(busFormCommand.getMake());</span>
+<span class="nc" id="L106">                AgencyDto updatedAgencyDto = busReservationService.updateAgency(agencyDto, busDto);</span>
+<span class="nc" id="L107">                modelAndView.addObject(&quot;agency&quot;, updatedAgencyDto);</span>
+<span class="nc" id="L108">                modelAndView.addObject(&quot;busFormData&quot;, new BusFormCommand());</span>
+<span class="nc" id="L109">            } catch (Exception ex) {</span>
+<span class="nc" id="L110">                bindingResult.rejectValue(&quot;code&quot;, &quot;error.busFormCommand&quot;, ex.getMessage());</span>
+<span class="nc" id="L111">            }</span>
+        }
+<span class="nc" id="L113">        return modelAndView;</span>
+    }
+
+    @GetMapping(value = &quot;/trip&quot;)
+    public ModelAndView tripDetails() {
+<span class="nc" id="L118">        ModelAndView modelAndView = new ModelAndView(&quot;trip&quot;);</span>
+<span class="nc" id="L119">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L120">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L121">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L122">        Set&lt;StopDto&gt; stops = busReservationService.getAllStops();</span>
+<span class="nc" id="L123">        List&lt;TripDto&gt; trips = busReservationService.getAgencyTrips(agencyDto.getCode());</span>
+<span class="nc" id="L124">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc" id="L125">        modelAndView.addObject(&quot;stops&quot;, stops);</span>
+<span class="nc" id="L126">        modelAndView.addObject(&quot;trips&quot;, trips);</span>
+<span class="nc" id="L127">        modelAndView.addObject(&quot;tripFormData&quot;, new TripFormCommand());</span>
+<span class="nc" id="L128">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L129">        return modelAndView;</span>
+    }
+
+    @PostMapping(value = &quot;/trip&quot;)
+    public ModelAndView addNewTrip(@Valid @ModelAttribute(&quot;tripFormData&quot;) TripFormCommand tripFormCommand, BindingResult bindingResult) {
+<span class="nc" id="L134">        ModelAndView modelAndView = new ModelAndView(&quot;trip&quot;);</span>
+<span class="nc" id="L135">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L136">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L137">        AgencyDto agencyDto = busReservationService.getAgency(userDto);</span>
+<span class="nc" id="L138">        Set&lt;StopDto&gt; stops = busReservationService.getAllStops();</span>
+<span class="nc" id="L139">        List&lt;TripDto&gt; trips = busReservationService.getAgencyTrips(agencyDto.getCode());</span>
+
+<span class="nc" id="L141">        modelAndView.addObject(&quot;stops&quot;, stops);</span>
+<span class="nc" id="L142">        modelAndView.addObject(&quot;agency&quot;, agencyDto);</span>
+<span class="nc" id="L143">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L144">        modelAndView.addObject(&quot;trips&quot;, trips);</span>
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (!bindingResult.hasErrors()) {</span>
+            try {
+<span class="nc" id="L148">                TripDto tripDto = new TripDto()</span>
+<span class="nc" id="L149">                        .setSourceStopCode(tripFormCommand.getSourceStop())</span>
+<span class="nc" id="L150">                        .setDestinationStopCode(tripFormCommand.getDestinationStop())</span>
+<span class="nc" id="L151">                        .setBusCode(tripFormCommand.getBusCode())</span>
+<span class="nc" id="L152">                        .setJourneyTime(tripFormCommand.getTripDuration())</span>
+<span class="nc" id="L153">                        .setFare(tripFormCommand.getTripFare())</span>
+<span class="nc" id="L154">                        .setAgencyCode(agencyDto.getCode());</span>
+<span class="nc" id="L155">                busReservationService.addTrip(tripDto);</span>
+
+<span class="nc" id="L157">                trips = busReservationService.getAgencyTrips(agencyDto.getCode());</span>
+<span class="nc" id="L158">                modelAndView.addObject(&quot;trips&quot;, trips);</span>
+<span class="nc" id="L159">                modelAndView.addObject(&quot;tripFormData&quot;, new TripFormCommand());</span>
+<span class="nc" id="L160">            } catch (Exception ex) {</span>
+<span class="nc" id="L161">                bindingResult.rejectValue(&quot;sourceStop&quot;, &quot;error.tripFormData&quot;, ex.getMessage());</span>
+<span class="nc" id="L162">            }</span>
+        }
+<span class="nc" id="L164">        return modelAndView;</span>
+    }
+
+    @GetMapping(value = &quot;/profile&quot;)
+    public ModelAndView getUserProfile() {
+<span class="nc" id="L169">        ModelAndView modelAndView = new ModelAndView(&quot;profile&quot;);</span>
+<span class="nc" id="L170">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L171">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L172">        ProfileFormCommand profileFormCommand = new ProfileFormCommand()</span>
+<span class="nc" id="L173">                .setFirstName(userDto.getFirstName())</span>
+<span class="nc" id="L174">                .setLastName(userDto.getLastName())</span>
+<span class="nc" id="L175">                .setMobileNumber(userDto.getMobileNumber());</span>
+<span class="nc" id="L176">        PasswordFormCommand passwordFormCommand = new PasswordFormCommand()</span>
+<span class="nc" id="L177">                .setEmail(userDto.getEmail())</span>
+<span class="nc" id="L178">                .setPassword(userDto.getPassword());</span>
+<span class="nc" id="L179">        modelAndView.addObject(&quot;profileForm&quot;, profileFormCommand);</span>
+<span class="nc" id="L180">        modelAndView.addObject(&quot;passwordForm&quot;, passwordFormCommand);</span>
+<span class="nc" id="L181">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L182">        return modelAndView;</span>
+    }
+
+    @PostMapping(value = &quot;/profile&quot;)
+    public ModelAndView updateProfile(@Valid @ModelAttribute(&quot;profileForm&quot;) ProfileFormCommand profileFormCommand, BindingResult bindingResult) {
+<span class="nc" id="L187">        ModelAndView modelAndView = new ModelAndView(&quot;profile&quot;);</span>
+<span class="nc" id="L188">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L189">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc" id="L190">        PasswordFormCommand passwordFormCommand = new PasswordFormCommand()</span>
+<span class="nc" id="L191">                .setEmail(userDto.getEmail())</span>
+<span class="nc" id="L192">                .setPassword(userDto.getPassword());</span>
+<span class="nc" id="L193">        modelAndView.addObject(&quot;passwordForm&quot;, passwordFormCommand);</span>
+<span class="nc" id="L194">        modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (!bindingResult.hasErrors()) {</span>
+<span class="nc" id="L196">            userDto.setFirstName(profileFormCommand.getFirstName())</span>
+<span class="nc" id="L197">                    .setLastName(profileFormCommand.getLastName())</span>
+<span class="nc" id="L198">                    .setMobileNumber(profileFormCommand.getMobileNumber());</span>
+<span class="nc" id="L199">            userService.updateProfile(userDto);</span>
+<span class="nc" id="L200">            modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+        }
+<span class="nc" id="L202">        return modelAndView;</span>
+    }
+
+    @PostMapping(value = &quot;/password&quot;)
+    public ModelAndView changePassword(@Valid @ModelAttribute(&quot;passwordForm&quot;) PasswordFormCommand passwordFormCommand, BindingResult bindingResult) {
+<span class="nc" id="L207">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L208">        UserDto userDto = userService.findUserByEmail(auth.getName());</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (bindingResult.hasErrors()) {</span>
+<span class="nc" id="L210">            ModelAndView modelAndView = new ModelAndView(&quot;profile&quot;);</span>
+<span class="nc" id="L211">            ProfileFormCommand profileFormCommand = new ProfileFormCommand()</span>
+<span class="nc" id="L212">                    .setFirstName(userDto.getFirstName())</span>
+<span class="nc" id="L213">                    .setLastName(userDto.getLastName())</span>
+<span class="nc" id="L214">                    .setMobileNumber(userDto.getMobileNumber());</span>
+<span class="nc" id="L215">            modelAndView.addObject(&quot;profileForm&quot;, profileFormCommand);</span>
+<span class="nc" id="L216">            modelAndView.addObject(&quot;userName&quot;, userDto.getFullName());</span>
+<span class="nc" id="L217">            return modelAndView;</span>
+        } else {
+<span class="nc" id="L219">            userService.changePassword(userDto, passwordFormCommand.getPassword());</span>
+<span class="nc" id="L220">            return new ModelAndView(&quot;login&quot;);</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

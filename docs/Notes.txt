@@ -1,0 +1,13 @@
+** Dev
+
+- En Dev (PC Portable) - Test -- Git  
+- En  Integration(Recette Technique - PreRecette) (Continue) Linux Centos
+
+-----------------------------------------------------
+** Ops
+
+- En  Recette (Fonctionnelle/Métier) Mongo single (1 noeud)  Linux Centos
+
+- Env  Preprod (Staging) 20 Go Mongo Cluster (3 noeuds) Linux Centos 
+
+- En  Prod  100 Go Mongo Cluster (3 noeuds) Linux Centos) (site reprise)

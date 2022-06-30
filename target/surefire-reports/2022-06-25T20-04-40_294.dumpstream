@@ -1,0 +1,15 @@
+# Created at 2022-06-25T20:04:55.376
+WARNING: An illegal reflective access operation has occurred
+
+# Created at 2022-06-25T20:04:55.377
+WARNING: Illegal reflective access by org.codehaus.groovy.reflection.CachedClass (file:/C:/Users/SOULEYSANOGO/.m2/repository/org/codehaus/groovy/groovy/2.5.13/groovy-2.5.13.jar) to method java.util.AbstractCollection.hugeCapacity(int)
+
+# Created at 2022-06-25T20:04:55.378
+WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.reflection.CachedClass
+
+# Created at 2022-06-25T20:04:55.378
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+
+# Created at 2022-06-25T20:04:55.380
+WARNING: All illegal access operations will be denied in a future release
+

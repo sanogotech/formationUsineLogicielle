@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TripMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.dto.mapper</a> &gt; <span class="el_source">TripMapper.java</span></div><h1>TripMapper.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.dto.mapper;
+
+import com.starterkit.springboot.brs.dto.model.bus.TripDto;
+import com.starterkit.springboot.brs.model.bus.Trip;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+<span class="nc" id="L9">public class TripMapper {</span>
+    public static TripDto toTripDto(Trip trip) {
+<span class="nc" id="L11">        return new TripDto()</span>
+<span class="nc" id="L12">                .setId(trip.getId())</span>
+<span class="nc" id="L13">                .setAgencyCode(trip.getAgency().getCode())</span>
+<span class="nc" id="L14">                .setSourceStopCode(trip.getSourceStop().getCode())</span>
+<span class="nc" id="L15">                .setSourceStopName(trip.getSourceStop().getName())</span>
+<span class="nc" id="L16">                .setDestinationStopCode(trip.getDestStop().getCode())</span>
+<span class="nc" id="L17">                .setDestinationStopName(trip.getDestStop().getName())</span>
+<span class="nc" id="L18">                .setBusCode(trip.getBus().getCode())</span>
+<span class="nc" id="L19">                .setJourneyTime(trip.getJourneyTime())</span>
+<span class="nc" id="L20">                .setFare(trip.getFare());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

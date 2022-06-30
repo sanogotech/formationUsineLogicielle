@@ -51,6 +51,10 @@ heroku deploy:jar target/heroku-demo-0.0.1-SNAPSHOT.jar --app <APP-NAME>
 heroku deploy:jar target/gestionassociation-1.0.jar  --app gestionassociation
 heroku logs --tail
 ```
+
+## Robot Frameword Test Automation + RPA
+
+https://robotframework.org/
 ## Github Actions CI
 
 To get started using the action, just make sure to have a Procfile or a Dockerfile in your project and then create a folder called .github and inside it, create another folder called workflows. Finally inside the workflows folder, create a file called main.yml with the following contents
@@ -71,7 +75,24 @@ travis encrypt $(heroku auth:token) --add deploy.api_key
 ** replace  server.port=8080  with :
 server.port=${PORT:8080}
 
+## SONAR
+``` 
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.login=the-generated-token
+``` 
+
+``` 
+<plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.4.0.905</version>
+            </plugin>
+
+``` 
+
 - http://gestionassociation.herokuapp.com/
+
+##  Test / reporting  Jacoco
+- mvn clean verify
 
 ## Table of Contents ##
 1. [Philosophy](#Philosophy)

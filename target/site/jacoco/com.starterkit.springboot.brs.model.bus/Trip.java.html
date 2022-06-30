@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Trip.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.model.bus</a> &gt; <span class="el_source">Trip.java</span></div><h1>Trip.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.model.bus;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import javax.persistence.*;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+@Getter
+<span class="pc" id="L14">@Setter</span>
+<span class="fc" id="L15">@NoArgsConstructor</span>
+@Accessors(chain = true)
+@Entity
+@Table(name = &quot;trip&quot;)
+public class Trip {
+    @Id
+    @Column(name = &quot;trip_id&quot;)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="fc" id="L23">    private Long id;</span>
+
+<span class="nc" id="L25">    private int fare;</span>
+
+    @Column(name = &quot;journey_time&quot;)
+<span class="nc" id="L28">    private int journeyTime;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;source_stop_id&quot;)
+<span class="nc" id="L32">    private Stop sourceStop;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;dest_stop_id&quot;)
+<span class="nc" id="L36">    private Stop destStop;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;bus_id&quot;)
+<span class="fc" id="L40">    private Bus bus;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;agency_id&quot;)
+<span class="nc" id="L44">    private Agency agency;</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

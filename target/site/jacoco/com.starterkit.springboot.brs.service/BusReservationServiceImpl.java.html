@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BusReservationServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.service</a> &gt; <span class="el_source">BusReservationServiceImpl.java</span></div><h1>BusReservationServiceImpl.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.service;
+
+import com.starterkit.springboot.brs.dto.mapper.TicketMapper;
+import com.starterkit.springboot.brs.dto.mapper.TripMapper;
+import com.starterkit.springboot.brs.dto.mapper.TripScheduleMapper;
+import com.starterkit.springboot.brs.dto.model.bus.*;
+import com.starterkit.springboot.brs.dto.model.user.UserDto;
+import com.starterkit.springboot.brs.exception.BRSException;
+import com.starterkit.springboot.brs.exception.EntityType;
+import com.starterkit.springboot.brs.exception.ExceptionType;
+import com.starterkit.springboot.brs.model.bus.*;
+import com.starterkit.springboot.brs.model.user.User;
+import com.starterkit.springboot.brs.repository.bus.*;
+import com.starterkit.springboot.brs.repository.user.UserRepository;
+import com.starterkit.springboot.brs.util.RandomStringUtil;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static com.starterkit.springboot.brs.exception.EntityType.*;
+import static com.starterkit.springboot.brs.exception.ExceptionType.*;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+@Component
+<span class="fc" id="L32">public class BusReservationServiceImpl implements BusReservationService {</span>
+    @Autowired
+    private AgencyRepository agencyRepository;
+
+    @Autowired
+    private BusRepository busRepository;
+
+    @Autowired
+    private StopRepository stopRepository;
+
+    @Autowired
+    private TicketRepository ticketRepository;
+
+    @Autowired
+    private TripRepository tripRepository;
+
+    @Autowired
+    private TripScheduleRepository tripScheduleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    /**
+     * Retruns all the available stops in the database.
+     *
+     * @return
+     */
+    @Override
+    public Set&lt;StopDto&gt; getAllStops() {
+<span class="nc" id="L64">        return StreamSupport</span>
+<span class="nc" id="L65">                .stream(stopRepository.findAll().spliterator(), false)</span>
+<span class="nc" id="L66">                .map(stop -&gt; modelMapper.map(stop, StopDto.class))</span>
+<span class="nc" id="L67">                .collect(Collectors.toCollection(TreeSet::new));</span>
+    }
+
+    /**
+     * Returns the Stop details based on stop code.
+     *
+     * @param stopCode
+     * @return
+     */
+    @Override
+    public StopDto getStopByCode(String stopCode) {
+<span class="nc" id="L78">        Optional&lt;Stop&gt; stop = Optional.ofNullable(stopRepository.findByCode(stopCode));</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (stop.isPresent()) {</span>
+<span class="nc" id="L80">            return modelMapper.map(stop.get(), StopDto.class);</span>
+        }
+<span class="nc" id="L82">        throw exception(STOP, ENTITY_NOT_FOUND, stopCode);</span>
+    }
+
+    /**
+     * Fetch AgencyDto from userDto
+     *
+     * @param userDto
+     * @return
+     */
+    @Override
+    public AgencyDto getAgency(UserDto userDto) {
+<span class="nc" id="L93">        User user = getUser(userDto.getEmail());</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (user != null) {</span>
+<span class="nc" id="L95">            Optional&lt;Agency&gt; agency = Optional.ofNullable(agencyRepository.findByOwner(user));</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (agency.isPresent()) {</span>
+<span class="nc" id="L97">                return modelMapper.map(agency.get(), AgencyDto.class);</span>
+            }
+<span class="nc" id="L99">            throw exceptionWithId(AGENCY, ENTITY_NOT_FOUND, 2, user.getEmail());</span>
+        }
+<span class="nc" id="L101">        throw exception(USER, ENTITY_NOT_FOUND, userDto.getEmail());</span>
+    }
+
+    /**
+     * Register a new agency from the Admin signup flow
+     *
+     * @param agencyDto
+     * @return
+     */
+    @Override
+    public AgencyDto addAgency(AgencyDto agencyDto) {
+<span class="nc" id="L112">        User admin = getUser(agencyDto.getOwner().getEmail());</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (admin != null) {</span>
+<span class="nc" id="L114">            Optional&lt;Agency&gt; agency = Optional.ofNullable(agencyRepository.findByName(agencyDto.getName()));</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            if (!agency.isPresent()) {</span>
+<span class="nc" id="L116">                Agency agencyModel = new Agency()</span>
+<span class="nc" id="L117">                        .setName(agencyDto.getName())</span>
+<span class="nc" id="L118">                        .setDetails(agencyDto.getDetails())</span>
+<span class="nc" id="L119">                        .setCode(RandomStringUtil.getAlphaNumericString(8, agencyDto.getName()))</span>
+<span class="nc" id="L120">                        .setOwner(admin);</span>
+<span class="nc" id="L121">                agencyRepository.save(agencyModel);</span>
+<span class="nc" id="L122">                return modelMapper.map(agencyModel, AgencyDto.class);</span>
+            }
+<span class="nc" id="L124">            throw exception(AGENCY, DUPLICATE_ENTITY, agencyDto.getName());</span>
+        }
+<span class="nc" id="L126">        throw exception(USER, ENTITY_NOT_FOUND, agencyDto.getOwner().getEmail());</span>
+    }
+
+    /**
+     * Updates the agency with given Bus information
+     *
+     * @param agencyDto
+     * @param busDto
+     * @return
+     */
+    @Transactional
+    public AgencyDto updateAgency(AgencyDto agencyDto, BusDto busDto) {
+<span class="nc" id="L138">        Agency agency = getAgency(agencyDto.getCode());</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (agency != null) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (busDto != null) {</span>
+<span class="nc" id="L141">                Optional&lt;Bus&gt; bus = Optional.ofNullable(busRepository.findByCodeAndAgency(busDto.getCode(), agency));</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                if (!bus.isPresent()) {</span>
+<span class="nc" id="L143">                    Bus busModel = new Bus()</span>
+<span class="nc" id="L144">                            .setAgency(agency)</span>
+<span class="nc" id="L145">                            .setCode(busDto.getCode())</span>
+<span class="nc" id="L146">                            .setCapacity(busDto.getCapacity())</span>
+<span class="nc" id="L147">                            .setMake(busDto.getMake());</span>
+<span class="nc" id="L148">                    busRepository.save(busModel);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                    if (agency.getBuses() == null) {</span>
+<span class="nc" id="L150">                        agency.setBuses(new HashSet&lt;&gt;());</span>
+                    }
+<span class="nc" id="L152">                    agency.getBuses().add(busModel);</span>
+<span class="nc" id="L153">                    return modelMapper.map(agencyRepository.save(agency), AgencyDto.class);</span>
+                }
+<span class="nc" id="L155">                throw exceptionWithId(BUS, DUPLICATE_ENTITY, 2, busDto.getCode(), agencyDto.getCode());</span>
+            } else {
+                //update agency details case
+<span class="nc" id="L158">                agency.setName(agencyDto.getName())</span>
+<span class="nc" id="L159">                        .setDetails(agencyDto.getDetails());</span>
+<span class="nc" id="L160">                return modelMapper.map(agencyRepository.save(agency), AgencyDto.class);</span>
+            }
+        }
+<span class="nc" id="L163">        throw exceptionWithId(AGENCY, ENTITY_NOT_FOUND, 2, agencyDto.getOwner().getEmail());</span>
+    }
+
+    /**
+     * Returns trip details basd on trip_id
+     *
+     * @param tripID
+     * @return
+     */
+    @Override
+    public TripDto getTripById(Long tripID) {
+<span class="nc" id="L174">        Optional&lt;Trip&gt; trip = tripRepository.findById(tripID);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (trip.isPresent()) {</span>
+<span class="nc" id="L176">            return TripMapper.toTripDto(trip.get());</span>
+        }
+<span class="nc" id="L178">        throw exception(TRIP, ENTITY_NOT_FOUND, tripID.toString());</span>
+    }
+
+    /**
+     * Creates two new Trips with the given information in tripDto object
+     *
+     * @param tripDto
+     * @return
+     */
+    @Override
+    @Transactional
+    public List&lt;TripDto&gt; addTrip(TripDto tripDto) {
+<span class="nc" id="L190">        Stop sourceStop = getStop(tripDto.getSourceStopCode());</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (sourceStop != null) {</span>
+<span class="nc" id="L192">            Stop destinationStop = getStop(tripDto.getDestinationStopCode());</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (destinationStop != null) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (!sourceStop.getCode().equalsIgnoreCase(destinationStop.getCode())) {</span>
+<span class="nc" id="L195">                    Agency agency = getAgency(tripDto.getAgencyCode());</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                    if (agency != null) {</span>
+<span class="nc" id="L197">                        Bus bus = getBus(tripDto.getBusCode());</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                        if (bus != null) {</span>
+                            //Each new trip creation results in a to and a fro trip
+<span class="nc" id="L200">                            List&lt;TripDto&gt; trips = new ArrayList&lt;&gt;(2);</span>
+<span class="nc" id="L201">                            Trip toTrip = new Trip()</span>
+<span class="nc" id="L202">                                    .setSourceStop(sourceStop)</span>
+<span class="nc" id="L203">                                    .setDestStop(destinationStop)</span>
+<span class="nc" id="L204">                                    .setAgency(agency)</span>
+<span class="nc" id="L205">                                    .setBus(bus)</span>
+<span class="nc" id="L206">                                    .setJourneyTime(tripDto.getJourneyTime())</span>
+<span class="nc" id="L207">                                    .setFare(tripDto.getFare());</span>
+<span class="nc" id="L208">                            trips.add(TripMapper.toTripDto(tripRepository.save(toTrip)));</span>
+
+<span class="nc" id="L210">                            Trip froTrip = new Trip()</span>
+<span class="nc" id="L211">                                    .setSourceStop(destinationStop)</span>
+<span class="nc" id="L212">                                    .setDestStop(sourceStop)</span>
+<span class="nc" id="L213">                                    .setAgency(agency)</span>
+<span class="nc" id="L214">                                    .setBus(bus)</span>
+<span class="nc" id="L215">                                    .setJourneyTime(tripDto.getJourneyTime())</span>
+<span class="nc" id="L216">                                    .setFare(tripDto.getFare());</span>
+<span class="nc" id="L217">                            trips.add(TripMapper.toTripDto(tripRepository.save(froTrip)));</span>
+<span class="nc" id="L218">                            return trips;</span>
+                        }
+<span class="nc" id="L220">                        throw exception(BUS, ENTITY_NOT_FOUND, tripDto.getBusCode());</span>
+                    }
+<span class="nc" id="L222">                    throw exception(AGENCY, ENTITY_NOT_FOUND, tripDto.getAgencyCode());</span>
+                }
+<span class="nc" id="L224">                throw exception(TRIP, ENTITY_EXCEPTION, &quot;&quot;);</span>
+            }
+<span class="nc" id="L226">            throw exception(STOP, ENTITY_NOT_FOUND, tripDto.getDestinationStopCode());</span>
+        }
+<span class="nc" id="L228">        throw exception(STOP, ENTITY_NOT_FOUND, tripDto.getSourceStopCode());</span>
+    }
+
+    /**
+     * Fetch all the trips for a given agency
+     *
+     * @param agencyCode
+     * @return
+     */
+    @Override
+    public List&lt;TripDto&gt; getAgencyTrips(String agencyCode) {
+<span class="nc" id="L239">        Agency agency = getAgency(agencyCode);</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (agency != null) {</span>
+<span class="nc" id="L241">            List&lt;Trip&gt; agencyTrips = tripRepository.findByAgency(agency);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">            if (!agencyTrips.isEmpty()) {</span>
+<span class="nc" id="L243">                return agencyTrips</span>
+<span class="nc" id="L244">                        .stream()</span>
+<span class="nc" id="L245">                        .map(trip -&gt; TripMapper.toTripDto(trip))</span>
+<span class="nc" id="L246">                        .collect(Collectors.toList());</span>
+            }
+<span class="nc" id="L248">            return Collections.emptyList();</span>
+        }
+<span class="nc" id="L250">        throw exception(AGENCY, ENTITY_NOT_FOUND, agencyCode);</span>
+    }
+
+    /**
+     * Returns a list of trips between given source and destination stops.
+     *
+     * @param sourceStopCode
+     * @param destinationStopCode
+     * @return
+     */
+    @Override
+    public List&lt;TripDto&gt; getAvailableTripsBetweenStops(String sourceStopCode, String destinationStopCode) {
+<span class="nc" id="L262">        List&lt;Trip&gt; availableTrips = findTripsBetweenStops(sourceStopCode, destinationStopCode);</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (!availableTrips.isEmpty()) {</span>
+<span class="nc" id="L264">            return availableTrips</span>
+<span class="nc" id="L265">                    .stream()</span>
+<span class="nc" id="L266">                    .map(trip -&gt; TripMapper.toTripDto(trip))</span>
+<span class="nc" id="L267">                    .collect(Collectors.toList());</span>
+        }
+<span class="nc" id="L269">        return Collections.emptyList();</span>
+    }
+
+    /**
+     * Function to locate all the trips between src and dest stops and then
+     * filter the results as per the given date based on data present in
+     * trip schedule collection.
+     *
+     * @param sourceStopCode
+     * @param destinationStopCode
+     * @param tripDate
+     * @return list of tripschedules on given date
+     */
+    @Override
+    public List&lt;TripScheduleDto&gt; getAvailableTripSchedules(String sourceStopCode, String destinationStopCode, String tripDate) {
+<span class="nc" id="L284">        List&lt;Trip&gt; availableTrips = findTripsBetweenStops(sourceStopCode, destinationStopCode);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (!availableTrips.isEmpty()) {</span>
+<span class="nc" id="L286">            return availableTrips</span>
+<span class="nc" id="L287">                    .stream()</span>
+<span class="nc" id="L288">                    .map(trip -&gt; getTripSchedule(TripMapper.toTripDto(trip), tripDate, true))</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                    .filter(tripScheduleDto -&gt; tripScheduleDto != null)</span>
+<span class="nc" id="L290">                    .collect(Collectors.toList());</span>
+        }
+<span class="nc" id="L292">        return Collections.emptyList();</span>
+    }
+
+    /**
+     * Returns TripScheduleDto based on trip details and trip date,
+     * optionally creates a schedule if its not found and if the createSchedForTrip
+     * parameter is set to true.
+     *
+     * @param tripDto
+     * @param tripDate
+     * @param createSchedForTrip
+     * @return
+     */
+    @Override
+    public TripScheduleDto getTripSchedule(TripDto tripDto, String tripDate, boolean createSchedForTrip) {
+<span class="nc" id="L307">        Optional&lt;Trip&gt; trip = tripRepository.findById(tripDto.getId());</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        if (trip.isPresent()) {</span>
+<span class="nc" id="L309">            Optional&lt;TripSchedule&gt; tripSchedule = Optional.ofNullable(tripScheduleRepository.findByTripDetailAndTripDate(trip.get(), tripDate));</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">            if (tripSchedule.isPresent()) {</span>
+<span class="nc" id="L311">                return TripScheduleMapper.toTripScheduleDto(tripSchedule.get());</span>
+            } else {
+<span class="nc bnc" id="L313" title="All 2 branches missed.">                if (createSchedForTrip) { //create the schedule</span>
+<span class="nc" id="L314">                    TripSchedule tripSchedule1 = new TripSchedule()</span>
+<span class="nc" id="L315">                            .setTripDetail(trip.get())</span>
+<span class="nc" id="L316">                            .setTripDate(tripDate)</span>
+<span class="nc" id="L317">                            .setAvailableSeats(trip.get().getBus().getCapacity());</span>
+<span class="nc" id="L318">                    return TripScheduleMapper.toTripScheduleDto(tripScheduleRepository.save(tripSchedule1));</span>
+                } else {
+<span class="nc" id="L320">                    throw exceptionWithId(TRIP, ENTITY_NOT_FOUND, 2, tripDto.getId().toString(), tripDate);</span>
+                }
+            }
+        }
+<span class="nc" id="L324">        throw exception(TRIP, ENTITY_NOT_FOUND, tripDto.getId().toString());</span>
+    }
+
+    /**
+     * Method to book ticket for a given trip schedule
+     *
+     * @param tripScheduleDto
+     * @param userDto
+     * @return
+     */
+    @Override
+    @Transactional
+    public TicketDto bookTicket(TripScheduleDto tripScheduleDto, UserDto userDto) {
+<span class="nc" id="L337">        User user = getUser(userDto.getEmail());</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (user != null) {</span>
+<span class="nc" id="L339">            Optional&lt;TripSchedule&gt; tripSchedule = tripScheduleRepository.findById(tripScheduleDto.getId());</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">            if (tripSchedule.isPresent()) {</span>
+<span class="nc" id="L341">                Ticket ticket = new Ticket()</span>
+<span class="nc" id="L342">                        .setCancellable(false)</span>
+<span class="nc" id="L343">                        .setJourneyDate(tripSchedule.get().getTripDate())</span>
+<span class="nc" id="L344">                        .setPassenger(user)</span>
+<span class="nc" id="L345">                        .setTripSchedule(tripSchedule.get())</span>
+<span class="nc" id="L346">                        .setSeatNumber(tripSchedule.get().getTripDetail().getBus().getCapacity() - tripSchedule.get().getAvailableSeats());</span>
+<span class="nc" id="L347">                ticketRepository.save(ticket);</span>
+<span class="nc" id="L348">                tripSchedule.get().setAvailableSeats(tripSchedule.get().getAvailableSeats() - 1); //reduce availability by 1</span>
+<span class="nc" id="L349">                tripScheduleRepository.save(tripSchedule.get());//update schedule</span>
+<span class="nc" id="L350">                return TicketMapper.toTicketDto(ticket);</span>
+            }
+<span class="nc" id="L352">            throw exceptionWithId(TRIP, ENTITY_NOT_FOUND, 2, tripScheduleDto.getTripId().toString(), tripScheduleDto.getTripDate());</span>
+        }
+<span class="nc" id="L354">        throw exception(USER, ENTITY_NOT_FOUND, userDto.getEmail());</span>
+    }
+
+    /**
+     * Search for all Trips between src and dest stops
+     *
+     * @param sourceStopCode
+     * @param destinationStopCode
+     * @return
+     */
+    private List&lt;Trip&gt; findTripsBetweenStops(String sourceStopCode, String destinationStopCode) {
+<span class="nc" id="L365">        Optional&lt;Stop&gt; sourceStop = Optional</span>
+<span class="nc" id="L366">                .ofNullable(stopRepository.findByCode(sourceStopCode));</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if (sourceStop.isPresent()) {</span>
+<span class="nc" id="L368">            Optional&lt;Stop&gt; destStop = Optional</span>
+<span class="nc" id="L369">                    .ofNullable(stopRepository.findByCode(destinationStopCode));</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            if (destStop.isPresent()) {</span>
+<span class="nc" id="L371">                List&lt;Trip&gt; availableTrips = tripRepository.findAllBySourceStopAndDestStop(sourceStop.get(), destStop.get());</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">                if (!availableTrips.isEmpty()) {</span>
+<span class="nc" id="L373">                    return availableTrips;</span>
+                }
+<span class="nc" id="L375">                return Collections.emptyList();</span>
+            }
+<span class="nc" id="L377">            throw exception(STOP, ENTITY_NOT_FOUND, destinationStopCode);</span>
+        }
+<span class="nc" id="L379">        throw exception(STOP, ENTITY_NOT_FOUND, sourceStopCode);</span>
+    }
+
+    /**
+     * Fetch user from UserDto
+     *
+     * @param email
+     * @return
+     */
+    private User getUser(String email) {
+<span class="nc" id="L389">        return userRepository.findByEmail(email);</span>
+    }
+
+    /**
+     * Fetch Stop from stopCode
+     *
+     * @param stopCode
+     * @return
+     */
+    private Stop getStop(String stopCode) {
+<span class="nc" id="L399">        return stopRepository.findByCode(stopCode);</span>
+    }
+
+    /**
+     * Fetch Bus from busCode, since it is unique we don't have issues of finding duplicate Buses
+     *
+     * @param busCode
+     * @return
+     */
+    private Bus getBus(String busCode) {
+<span class="nc" id="L409">        return busRepository.findByCode(busCode);</span>
+    }
+
+    /**
+     * Fetch Agency from agencyCode
+     *
+     * @param agencyCode
+     * @return
+     */
+    private Agency getAgency(String agencyCode) {
+<span class="nc" id="L419">        return agencyRepository.findByCode(agencyCode);</span>
+    }
+
+    /**
+     * Returns a new RuntimeException
+     *
+     * @param entityType
+     * @param exceptionType
+     * @param args
+     * @return
+     */
+    private RuntimeException exception(EntityType entityType, ExceptionType exceptionType, String... args) {
+<span class="nc" id="L431">        return BRSException.throwException(entityType, exceptionType, args);</span>
+    }
+
+    /**
+     * Returns a new RuntimeException
+     *
+     * @param entityType
+     * @param exceptionType
+     * @param args
+     * @return
+     */
+    private RuntimeException exceptionWithId(EntityType entityType, ExceptionType exceptionType, Integer id, String... args) {
+<span class="nc" id="L443">        return BRSException.throwExceptionWithId(entityType, exceptionType, id, args);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

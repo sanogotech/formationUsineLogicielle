@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BusReservationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.controller.v1.api</a> &gt; <span class="el_source">BusReservationController.java</span></div><h1>BusReservationController.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.controller.v1.api;
+
+import com.starterkit.springboot.brs.controller.v1.request.BookTicketRequest;
+import com.starterkit.springboot.brs.controller.v1.request.GetTripSchedulesRequest;
+import com.starterkit.springboot.brs.dto.model.bus.TicketDto;
+import com.starterkit.springboot.brs.dto.model.bus.TripDto;
+import com.starterkit.springboot.brs.dto.model.bus.TripScheduleDto;
+import com.starterkit.springboot.brs.dto.model.user.UserDto;
+import com.starterkit.springboot.brs.dto.response.Response;
+import com.starterkit.springboot.brs.service.BusReservationService;
+import com.starterkit.springboot.brs.service.UserService;
+import com.starterkit.springboot.brs.util.DateUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+@RestController
+@RequestMapping(&quot;/api/v1/reservation&quot;)
+@Api(value = &quot;brs-application&quot;, description = &quot;Operations pertaining to agency management and ticket issue in the BRS application&quot;)
+<span class="fc" id="L31">public class BusReservationController {</span>
+    @Autowired
+    private BusReservationService busReservationService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping(&quot;/stops&quot;)
+    @ApiOperation(value = &quot;&quot;, authorizations = {@Authorization(value = &quot;apiKey&quot;)})
+    public Response getAllStops() {
+<span class="nc" id="L41">        return Response</span>
+<span class="nc" id="L42">                .ok()</span>
+<span class="nc" id="L43">                .setPayload(busReservationService.getAllStops());</span>
+    }
+
+    @GetMapping(&quot;/tripsbystops&quot;)
+    @ApiOperation(value = &quot;&quot;, authorizations = {@Authorization(value = &quot;apiKey&quot;)})
+    public Response getTripsByStops(@RequestBody @Valid GetTripSchedulesRequest getTripSchedulesRequest) {
+<span class="nc" id="L49">        List&lt;TripDto&gt; tripDtos = busReservationService.getAvailableTripsBetweenStops(</span>
+<span class="nc" id="L50">                getTripSchedulesRequest.getSourceStop(),</span>
+<span class="nc" id="L51">                getTripSchedulesRequest.getDestinationStop());</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (!tripDtos.isEmpty()) {</span>
+<span class="nc" id="L53">            return Response.ok().setPayload(tripDtos);</span>
+        }
+<span class="nc" id="L55">        return Response.notFound()</span>
+<span class="nc" id="L56">                .setErrors(String.format(&quot;No trips between source stop - '%s' and destination stop - '%s' are available at this time.&quot;, getTripSchedulesRequest.getSourceStop(), getTripSchedulesRequest.getDestinationStop()));</span>
+    }
+
+    @GetMapping(&quot;/tripschedules&quot;)
+    @ApiOperation(value = &quot;&quot;, authorizations = {@Authorization(value = &quot;apiKey&quot;)})
+    public Response getTripSchedules(@RequestBody @Valid GetTripSchedulesRequest getTripSchedulesRequest) {
+<span class="nc" id="L62">        List&lt;TripScheduleDto&gt; tripScheduleDtos = busReservationService.getAvailableTripSchedules(</span>
+<span class="nc" id="L63">                getTripSchedulesRequest.getSourceStop(),</span>
+<span class="nc" id="L64">                getTripSchedulesRequest.getDestinationStop(),</span>
+<span class="nc" id="L65">                DateUtils.formattedDate(getTripSchedulesRequest.getTripDate()));</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!tripScheduleDtos.isEmpty()) {</span>
+<span class="nc" id="L67">            return Response.ok().setPayload(tripScheduleDtos);</span>
+        }
+<span class="nc" id="L69">        return Response.notFound()</span>
+<span class="nc" id="L70">                .setErrors(String.format(&quot;No trips between source stop - '%s' and destination stop - '%s' on date - '%s' are available at this time.&quot;, getTripSchedulesRequest.getSourceStop(), getTripSchedulesRequest.getDestinationStop(), DateUtils.formattedDate(getTripSchedulesRequest.getTripDate())));</span>
+    }
+
+    @PostMapping(&quot;/bookticket&quot;)
+    @ApiOperation(value = &quot;&quot;, authorizations = {@Authorization(value = &quot;apiKey&quot;)})
+    public Response bookTicket(@RequestBody @Valid BookTicketRequest bookTicketRequest) {
+<span class="nc" id="L76">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="nc" id="L77">        String email = (String) auth.getPrincipal();</span>
+<span class="nc" id="L78">        Optional&lt;UserDto&gt; userDto = Optional.ofNullable(userService.findUserByEmail(email));</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (userDto.isPresent()) {</span>
+<span class="nc" id="L80">            Optional&lt;TripDto&gt; tripDto = Optional</span>
+<span class="nc" id="L81">                    .ofNullable(busReservationService.getTripById(bookTicketRequest.getTripID()));</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (tripDto.isPresent()) {</span>
+<span class="nc" id="L83">                Optional&lt;TripScheduleDto&gt; tripScheduleDto = Optional</span>
+<span class="nc" id="L84">                        .ofNullable(busReservationService.getTripSchedule(tripDto.get(), DateUtils.formattedDate(bookTicketRequest.getTripDate()), true));</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (tripScheduleDto.isPresent()) {</span>
+<span class="nc" id="L86">                    Optional&lt;TicketDto&gt; ticketDto = Optional</span>
+<span class="nc" id="L87">                            .ofNullable(busReservationService.bookTicket(tripScheduleDto.get(), userDto.get()));</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                    if (ticketDto.isPresent()) {</span>
+<span class="nc" id="L89">                        return Response.ok().setPayload(ticketDto.get());</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L94">        return Response.badRequest().setErrors(&quot;Unable to process ticket booking.&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Response.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.dto.response</a> &gt; <span class="el_source">Response.java</span></div><h1>Response.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starterkit.springboot.brs.util.DateUtils;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+/**
+ * @author Arpit Khandelwal
+ */
+@Getter
+<span class="nc" id="L15">@Setter</span>
+@Accessors(chain = true)
+<span class="nc" id="L17">@NoArgsConstructor</span>
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Response&lt;T&gt; {
+
+<span class="nc" id="L22">    private Status status;</span>
+<span class="nc" id="L23">    private T payload;</span>
+<span class="nc" id="L24">    private Object errors;</span>
+<span class="nc" id="L25">    private Object metadata;</span>
+
+    public static &lt;T&gt; Response&lt;T&gt; badRequest() {
+<span class="nc" id="L28">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L29">        response.setStatus(Status.BAD_REQUEST);</span>
+<span class="nc" id="L30">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; ok() {
+<span class="nc" id="L34">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L35">        response.setStatus(Status.OK);</span>
+<span class="nc" id="L36">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; unauthorized() {
+<span class="nc" id="L40">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L41">        response.setStatus(Status.UNAUTHORIZED);</span>
+<span class="nc" id="L42">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; validationException() {
+<span class="nc" id="L46">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L47">        response.setStatus(Status.VALIDATION_EXCEPTION);</span>
+<span class="nc" id="L48">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; wrongCredentials() {
+<span class="nc" id="L52">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L53">        response.setStatus(Status.WRONG_CREDENTIALS);</span>
+<span class="nc" id="L54">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; accessDenied() {
+<span class="nc" id="L58">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L59">        response.setStatus(Status.ACCESS_DENIED);</span>
+<span class="nc" id="L60">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; exception() {
+<span class="nc" id="L64">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L65">        response.setStatus(Status.EXCEPTION);</span>
+<span class="nc" id="L66">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; notFound() {
+<span class="nc" id="L70">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L71">        response.setStatus(Status.NOT_FOUND);</span>
+<span class="nc" id="L72">        return response;</span>
+    }
+
+    public static &lt;T&gt; Response&lt;T&gt; duplicateEntity() {
+<span class="nc" id="L76">        Response&lt;T&gt; response = new Response&lt;&gt;();</span>
+<span class="nc" id="L77">        response.setStatus(Status.DUPLICATE_ENTITY);</span>
+<span class="nc" id="L78">        return response;</span>
+    }
+
+    public void addErrorMsgToResponse(String errorMsg, Exception ex) {
+<span class="nc" id="L82">        ResponseError error = new ResponseError()</span>
+<span class="nc" id="L83">                .setDetails(errorMsg)</span>
+<span class="nc" id="L84">                .setMessage(ex.getMessage())</span>
+<span class="nc" id="L85">                .setTimestamp(DateUtils.today());</span>
+<span class="nc" id="L86">        setErrors(error);</span>
+<span class="nc" id="L87">    }</span>
+
+<span class="fc" id="L89">    public enum Status {</span>
+<span class="fc" id="L90">        OK, BAD_REQUEST, UNAUTHORIZED, VALIDATION_EXCEPTION, EXCEPTION, WRONG_CREDENTIALS, ACCESS_DENIED, NOT_FOUND, DUPLICATE_ENTITY</span>
+    }
+
+    @Getter
+    @Accessors(chain = true)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PageMetadata {
+<span class="nc" id="L98">        private final int size;</span>
+<span class="nc" id="L99">        private final long totalElements;</span>
+<span class="nc" id="L100">        private final int totalPages;</span>
+<span class="nc" id="L101">        private final int number;</span>
+
+<span class="nc" id="L103">        public PageMetadata(int size, long totalElements, int totalPages, int number) {</span>
+<span class="nc" id="L104">            this.size = size;</span>
+<span class="nc" id="L105">            this.totalElements = totalElements;</span>
+<span class="nc" id="L106">            this.totalPages = totalPages;</span>
+<span class="nc" id="L107">            this.number = number;</span>
+<span class="nc" id="L108">        }</span>
+    }
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

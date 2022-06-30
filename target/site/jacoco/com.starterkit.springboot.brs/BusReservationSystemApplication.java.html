@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BusReservationSystemApplication.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs</a> &gt; <span class="el_source">BusReservationSystemApplication.java</span></div><h1>BusReservationSystemApplication.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs;
+
+import com.starterkit.springboot.brs.model.bus.*;
+import com.starterkit.springboot.brs.model.user.Role;
+import com.starterkit.springboot.brs.model.user.User;
+import com.starterkit.springboot.brs.model.user.UserRoles;
+import com.starterkit.springboot.brs.repository.bus.*;
+import com.starterkit.springboot.brs.repository.user.RoleRepository;
+import com.starterkit.springboot.brs.repository.user.UserRepository;
+import com.starterkit.springboot.brs.util.DateUtils;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+@SpringBootApplication
+<span class="fc" id="L21">public class BusReservationSystemApplication {</span>
+
+    public static void main(String[] args) {
+<span class="nc" id="L24">        SpringApplication.run(BusReservationSystemApplication.class, args);</span>
+<span class="nc" id="L25">    }</span>
+
+    @Bean
+    CommandLineRunner init(RoleRepository roleRepository, UserRepository userRepository,
+                           StopRepository stopRepository, AgencyRepository agencyRepository,
+                           BusRepository busRepository, TripRepository tripRepository,
+                           TripScheduleRepository tripScheduleRepository) {
+<span class="fc" id="L32">        return args -&gt; {</span>
+            //Create Admin and Passenger Roles
+<span class="fc" id="L34">            Role adminRole = roleRepository.findByRole(UserRoles.ADMIN);</span>
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">            if (adminRole == null) {</span>
+<span class="fc" id="L36">                adminRole = new Role();</span>
+<span class="fc" id="L37">                adminRole.setRole(UserRoles.ADMIN);</span>
+<span class="fc" id="L38">                roleRepository.save(adminRole);</span>
+            }
+
+<span class="fc" id="L41">            Role userRole = roleRepository.findByRole(UserRoles.PASSENGER);</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">            if (userRole == null) {</span>
+<span class="fc" id="L43">                userRole = new Role();</span>
+<span class="fc" id="L44">                userRole.setRole(UserRoles.PASSENGER);</span>
+<span class="fc" id="L45">                roleRepository.save(userRole);</span>
+            }
+
+            //Create an Admin user
+<span class="fc" id="L49">            User admin = userRepository.findByEmail(&quot;admin@gmail.com&quot;);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">            if (admin == null) {</span>
+<span class="fc" id="L51">                admin = new User()</span>
+<span class="fc" id="L52">                        .setEmail(&quot;admin@gmail.com&quot;)</span>
+<span class="fc" id="L53">                        .setPassword(&quot;$2a$10$7PtcjEnWb/ZkgyXyxY1/Iei2dGgGQUbqIIll/dt.qJ8l8nQBWMbYO&quot;) // &quot;123456&quot;</span>
+<span class="fc" id="L54">                        .setFirstName(&quot;John&quot;)</span>
+<span class="fc" id="L55">                        .setLastName(&quot;Doe&quot;)</span>
+<span class="fc" id="L56">                        .setMobileNumber(&quot;9425094250&quot;)</span>
+<span class="fc" id="L57">                        .setRoles(Arrays.asList(adminRole));</span>
+<span class="fc" id="L58">                userRepository.save(admin);</span>
+            }
+
+            //Create a passenger user
+<span class="fc" id="L62">            User passenger = userRepository.findByEmail(&quot;passenger@gmail.com&quot;);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (passenger == null) {</span>
+<span class="fc" id="L64">                passenger = new User()</span>
+<span class="fc" id="L65">                        .setEmail(&quot;passenger@gmail.com&quot;)</span>
+<span class="fc" id="L66">                        .setPassword(&quot;$2a$10$7PtcjEnWb/ZkgyXyxY1/Iei2dGgGQUbqIIll/dt.qJ8l8nQBWMbYO&quot;) // &quot;123456&quot;</span>
+<span class="fc" id="L67">                        .setFirstName(&quot;Mira&quot;)</span>
+<span class="fc" id="L68">                        .setLastName(&quot;Jane&quot;)</span>
+<span class="fc" id="L69">                        .setMobileNumber(&quot;8000110008&quot;)</span>
+<span class="fc" id="L70">                        .setRoles(Arrays.asList(userRole));</span>
+<span class="fc" id="L71">                userRepository.save(passenger);</span>
+            }
+
+            //Create four stops
+<span class="fc" id="L75">            Stop stopA = stopRepository.findByCode(&quot;STPA&quot;);</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            if (stopA == null) {</span>
+<span class="fc" id="L77">                stopA = new Stop()</span>
+<span class="fc" id="L78">                        .setName(&quot;Stop A&quot;)</span>
+<span class="fc" id="L79">                        .setDetail(&quot;Near hills&quot;)</span>
+<span class="fc" id="L80">                        .setCode(&quot;STPA&quot;);</span>
+<span class="fc" id="L81">                stopRepository.save(stopA);</span>
+            }
+
+<span class="fc" id="L84">            Stop stopB = stopRepository.findByCode(&quot;STPB&quot;);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            if (stopB == null) {</span>
+<span class="fc" id="L86">                stopB = new Stop()</span>
+<span class="fc" id="L87">                        .setName(&quot;Stop B&quot;)</span>
+<span class="fc" id="L88">                        .setDetail(&quot;Near river&quot;)</span>
+<span class="fc" id="L89">                        .setCode(&quot;STPB&quot;);</span>
+<span class="fc" id="L90">                stopRepository.save(stopB);</span>
+            }
+
+<span class="fc" id="L93">            Stop stopC = stopRepository.findByCode(&quot;STPC&quot;);</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            if (stopC == null) {</span>
+<span class="fc" id="L95">                stopC = new Stop()</span>
+<span class="fc" id="L96">                        .setName(&quot;Stop C&quot;)</span>
+<span class="fc" id="L97">                        .setDetail(&quot;Near desert&quot;)</span>
+<span class="fc" id="L98">                        .setCode(&quot;STPC&quot;);</span>
+<span class="fc" id="L99">                stopRepository.save(stopC);</span>
+            }
+
+<span class="fc" id="L102">            Stop stopD = stopRepository.findByCode(&quot;STPD&quot;);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">            if (stopD == null) {</span>
+<span class="fc" id="L104">                stopD = new Stop()</span>
+<span class="fc" id="L105">                        .setName(&quot;Stop D&quot;)</span>
+<span class="fc" id="L106">                        .setDetail(&quot;Near lake&quot;)</span>
+<span class="fc" id="L107">                        .setCode(&quot;STPD&quot;);</span>
+<span class="fc" id="L108">                stopRepository.save(stopD);</span>
+            }
+
+            //Create an Agency
+<span class="fc" id="L112">            Agency agencyA = agencyRepository.findByCode(&quot;AGENCY-A&quot;);</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">            if (agencyA == null) {</span>
+<span class="fc" id="L114">                agencyA = new Agency()</span>
+<span class="fc" id="L115">                        .setName(&quot;Green Mile Agency&quot;)</span>
+<span class="fc" id="L116">                        .setCode(&quot;AGENCY-A&quot;)</span>
+<span class="fc" id="L117">                        .setDetails(&quot;Reaching desitnations with ease&quot;)</span>
+<span class="fc" id="L118">                        .setOwner(admin);</span>
+<span class="fc" id="L119">                agencyRepository.save(agencyA);</span>
+            }
+
+            //Create a bus
+<span class="fc" id="L123">            Bus busA = busRepository.findByCode(&quot;AGENCY-A-1&quot;);</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">            if (busA == null) {</span>
+<span class="fc" id="L125">                busA = new Bus()</span>
+<span class="fc" id="L126">                        .setCode(&quot;AGENCY-A-1&quot;)</span>
+<span class="fc" id="L127">                        .setAgency(agencyA)</span>
+<span class="fc" id="L128">                        .setCapacity(60);</span>
+<span class="fc" id="L129">                busRepository.save(busA);</span>
+            }
+
+            //Add busA to set of buses owned by Agency 'AGENCYA'
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">            if (agencyA.getBuses() == null) {</span>
+<span class="fc" id="L134">                Set&lt;Bus&gt; buses = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L135">                agencyA.setBuses(buses);</span>
+<span class="fc" id="L136">                agencyA.getBuses().add(busA);</span>
+<span class="fc" id="L137">                agencyRepository.save(agencyA);</span>
+            }
+
+            //Create a Trip
+<span class="fc" id="L141">            Trip trip = tripRepository.findBySourceStopAndDestStopAndBus(stopA, stopB, busA);</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">            if (trip == null) {</span>
+<span class="fc" id="L143">                trip = new Trip()</span>
+<span class="fc" id="L144">                        .setSourceStop(stopA)</span>
+<span class="fc" id="L145">                        .setDestStop(stopB)</span>
+<span class="fc" id="L146">                        .setBus(busA)</span>
+<span class="fc" id="L147">                        .setAgency(agencyA)</span>
+<span class="fc" id="L148">                        .setFare(100)</span>
+<span class="fc" id="L149">                        .setJourneyTime(60);</span>
+<span class="fc" id="L150">                tripRepository.save(trip);</span>
+            }
+
+            //Create a trip schedule
+<span class="fc" id="L154">            TripSchedule tripSchedule = tripScheduleRepository.findByTripDetailAndTripDate(trip, DateUtils.todayStr());</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">            if (tripSchedule == null) {</span>
+<span class="fc" id="L156">                tripSchedule = new TripSchedule()</span>
+<span class="fc" id="L157">                        .setTripDetail(trip)</span>
+<span class="fc" id="L158">                        .setTripDate(DateUtils.todayStr())</span>
+<span class="fc" id="L159">                        .setAvailableSeats(trip.getBus().getCapacity());</span>
+<span class="fc" id="L160">                tripScheduleRepository.save(tripSchedule);</span>
+            }
+<span class="fc" id="L162">        };</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

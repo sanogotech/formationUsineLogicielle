@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FormBasedJWTAuthenticationFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.security.form</a> &gt; <span class="el_source">FormBasedJWTAuthenticationFilter.java</span></div><h1>FormBasedJWTAuthenticationFilter.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.security.form;
+
+import com.starterkit.springboot.brs.model.user.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.starterkit.springboot.brs.security.SecurityConstants.*;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+public class FormBasedJWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    private final AuthenticationManager authenticationManager;
+
+<span class="nc" id="L30">    public FormBasedJWTAuthenticationFilter(AuthenticationManager authenticationManager) {</span>
+<span class="nc" id="L31">        this.authenticationManager = authenticationManager;</span>
+<span class="nc" id="L32">    }</span>
+
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest req,
+                                                HttpServletResponse res) throws AuthenticationException {
+<span class="nc" id="L37">        String email = req.getParameter(&quot;email&quot;);</span>
+<span class="nc" id="L38">        String password = req.getParameter(&quot;password&quot;);</span>
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (email != null &amp;&amp; password != null) {</span>
+<span class="nc" id="L40">            User user = new User().setEmail(email).setPassword(password);</span>
+<span class="nc" id="L41">            return authenticationManager.authenticate(</span>
+                    new UsernamePasswordAuthenticationToken(
+<span class="nc" id="L43">                            user.getEmail(),</span>
+<span class="nc" id="L44">                            user.getPassword(),</span>
+                            new ArrayList&lt;&gt;())
+            );
+        }
+
+<span class="nc" id="L49">        return null;</span>
+    }
+
+    @Override
+    protected void successfulAuthentication(HttpServletRequest req,
+                                            HttpServletResponse res,
+                                            FilterChain chain,
+                                            Authentication auth) throws IOException, ServletException {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (auth.getPrincipal() != null) {</span>
+            // The Auth Mechanism stores the Username the Principal.
+            // The username is stored in the Subject field of the Token
+<span class="nc" id="L60">            org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) auth.getPrincipal();</span>
+<span class="nc" id="L61">            String login = user.getUsername();</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">            if (login != null &amp;&amp; login.length() &gt; 0) {</span>
+<span class="nc" id="L63">                Claims claims = Jwts.claims().setSubject(login);</span>
+<span class="nc" id="L64">                List&lt;String&gt; roles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L65">                user</span>
+<span class="nc" id="L66">                        .getAuthorities()</span>
+<span class="nc" id="L67">                        .stream()</span>
+<span class="nc" id="L68">                        .forEach(authority -&gt; roles.add(authority.getAuthority()));</span>
+
+<span class="nc" id="L70">                claims.put(&quot;roles&quot;, roles);</span>
+<span class="nc" id="L71">                String token = Jwts.builder()</span>
+<span class="nc" id="L72">                        .setClaims(claims)</span>
+<span class="nc" id="L73">                        .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))</span>
+<span class="nc" id="L74">                        .signWith(SignatureAlgorithm.HS512, SECRET.getBytes())</span>
+<span class="nc" id="L75">                        .compact();</span>
+<span class="nc" id="L76">                res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);</span>
+            }
+        }
+<span class="nc" id="L79">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

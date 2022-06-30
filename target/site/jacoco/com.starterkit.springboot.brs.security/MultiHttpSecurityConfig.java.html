@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MultiHttpSecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">gestionassociation</a> &gt; <a href="index.source.html" class="el_package">com.starterkit.springboot.brs.security</a> &gt; <span class="el_source">MultiHttpSecurityConfig.java</span></div><h1>MultiHttpSecurityConfig.java</h1><pre class="source lang-java linenums">package com.starterkit.springboot.brs.security;
+
+import com.starterkit.springboot.brs.security.api.ApiJWTAuthenticationFilter;
+import com.starterkit.springboot.brs.security.api.ApiJWTAuthorizationFilter;
+import com.starterkit.springboot.brs.security.form.CustomAuthenticationSuccessHandler;
+import com.starterkit.springboot.brs.security.form.CustomLogoutSuccessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Created by Arpit Khandelwal.
+ */
+@EnableWebSecurity
+<span class="fc" id="L25">public class MultiHttpSecurityConfig {</span>
+
+    @Configuration
+    @Order(1)
+<span class="fc" id="L29">    public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {</span>
+        @Autowired
+        private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+        @Autowired
+        private CustomUserDetailsService userDetailsService;
+
+        @Override
+        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+<span class="fc" id="L38">            auth</span>
+<span class="fc" id="L39">                    .userDetailsService(userDetailsService)</span>
+<span class="fc" id="L40">                    .passwordEncoder(bCryptPasswordEncoder);</span>
+<span class="fc" id="L41">        }</span>
+
+        // @formatter:off
+        protected void configure(HttpSecurity http) throws Exception {
+<span class="fc" id="L45">            http</span>
+<span class="fc" id="L46">                    .csrf()</span>
+<span class="fc" id="L47">                    .disable()</span>
+<span class="fc" id="L48">                    .antMatcher(&quot;/api/**&quot;)</span>
+<span class="fc" id="L49">                    .authorizeRequests()</span>
+<span class="fc" id="L50">                    .antMatchers(&quot;/api/v1/user/signup&quot;).permitAll()</span>
+<span class="fc" id="L51">                    .anyRequest()</span>
+<span class="fc" id="L52">                    .authenticated()</span>
+<span class="fc" id="L53">                    .and()</span>
+<span class="fc" id="L54">                    .exceptionHandling()</span>
+<span class="pc" id="L55">                    .authenticationEntryPoint((req, rsp, e) -&gt; rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED))</span>
+<span class="fc" id="L56">                    .and()</span>
+<span class="fc" id="L57">                    .addFilter(new ApiJWTAuthenticationFilter(authenticationManager()))</span>
+<span class="fc" id="L58">                    .addFilter(new ApiJWTAuthorizationFilter(authenticationManager()))</span>
+<span class="fc" id="L59">                    .sessionManagement()</span>
+<span class="fc" id="L60">                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);</span>
+<span class="fc" id="L61">        }</span>
+        // @formatter:on
+
+    }
+
+    @Order(2)
+    @Configuration
+<span class="fc" id="L68">    public static class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {</span>
+        @Autowired
+        private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+        @Autowired
+        private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+        @Autowired
+        private CustomUserDetailsService userDetailsService;
+
+        @Override
+        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+<span class="fc" id="L80">            auth</span>
+<span class="fc" id="L81">                    .userDetailsService(userDetailsService)</span>
+<span class="fc" id="L82">                    .passwordEncoder(bCryptPasswordEncoder);</span>
+<span class="fc" id="L83">        }</span>
+
+        // @formatter:off
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+<span class="fc" id="L88">            http</span>
+<span class="fc" id="L89">                    .cors()</span>
+<span class="fc" id="L90">                    .and()</span>
+<span class="fc" id="L91">                    .csrf()</span>
+<span class="fc" id="L92">                    .disable()</span>
+<span class="fc" id="L93">                    .authorizeRequests()</span>
+<span class="fc" id="L94">                    .antMatchers(&quot;/&quot;).permitAll()</span>
+<span class="fc" id="L95">                    .antMatchers(&quot;/login&quot;).permitAll()</span>
+<span class="fc" id="L96">                    .antMatchers(&quot;/signup&quot;).permitAll()</span>
+<span class="fc" id="L97">                    .antMatchers(&quot;/dashboard/**&quot;).hasAuthority(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L98">                    .anyRequest()</span>
+<span class="fc" id="L99">                    .authenticated()</span>
+<span class="fc" id="L100">                    .and()</span>
+<span class="fc" id="L101">                    .formLogin()</span>
+<span class="fc" id="L102">                    .loginPage(&quot;/login&quot;)</span>
+<span class="fc" id="L103">                    .permitAll()</span>
+<span class="fc" id="L104">                    .failureUrl(&quot;/login?error=true&quot;)</span>
+<span class="fc" id="L105">                    .usernameParameter(&quot;email&quot;)</span>
+<span class="fc" id="L106">                    .passwordParameter(&quot;password&quot;)</span>
+<span class="fc" id="L107">                    .successHandler(customAuthenticationSuccessHandler)</span>
+<span class="fc" id="L108">                    .and()</span>
+<span class="fc" id="L109">                    .logout()</span>
+<span class="fc" id="L110">                    .permitAll()</span>
+<span class="fc" id="L111">                    .logoutRequestMatcher(new AntPathRequestMatcher(&quot;/logout&quot;))</span>
+<span class="fc" id="L112">                    .logoutSuccessHandler(new CustomLogoutSuccessHandler())</span>
+<span class="fc" id="L113">                    .deleteCookies(&quot;JSESSIONID&quot;)</span>
+<span class="fc" id="L114">                    .logoutSuccessUrl(&quot;/&quot;)</span>
+<span class="fc" id="L115">                    .and()</span>
+<span class="fc" id="L116">                    .exceptionHandling();</span>
+<span class="fc" id="L117">        }</span>
+
+        @Override
+        public void configure(WebSecurity web) throws Exception {
+<span class="fc" id="L121">            web.ignoring().antMatchers(</span>
+                    &quot;/resources/**&quot;, &quot;/static/**&quot;, &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/images/**&quot;,
+                    &quot;/resources/static/**&quot;, &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/img/**&quot;, &quot;/fonts/**&quot;,
+                    &quot;/images/**&quot;, &quot;/scss/**&quot;, &quot;/vendor/**&quot;, &quot;/favicon.ico&quot;, &quot;/auth/**&quot;, &quot;/favicon.png&quot;,
+                    &quot;/v2/api-docs&quot;, &quot;/configuration/ui&quot;, &quot;/configuration/security&quot;,
+                    &quot;/webjars/**&quot;, &quot;/swagger-resources/**&quot;, &quot;/actuator&quot;, &quot;/swagger-ui/**&quot;,
+                    &quot;/actuator/**&quot;, &quot;/swagger-ui/index.html&quot;, &quot;/swagger-ui/&quot;);
+<span class="fc" id="L128">        }</span>
+        // @formatter:on
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
