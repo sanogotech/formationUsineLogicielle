@@ -35,6 +35,11 @@
     </a>
 </p>
 
+
+## Metric Actuator
+
+http://localhost:8090/actuator/metrics/jvm.memory.max
+
 ## Heroku  CLI
 
 ```
