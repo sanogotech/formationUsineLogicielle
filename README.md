@@ -2,7 +2,7 @@
   <br>
   <a><img src="https://github.com/khandelwal-arpit/springboot-starterkit-mysql/blob/master/docs/images/spring-framework.png" alt="spring boot"></a>
   <br>
-  Spring Boot Starter-kit
+  Spring Boot Starter-kit - Heroku
   <br>
 </h1>
 
