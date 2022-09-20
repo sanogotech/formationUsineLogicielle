@@ -57,6 +57,10 @@ heroku deploy:jar target/gestionassociation-1.0.jar  --app gestionassociation
 heroku logs --tail
 ```
 
+##  PIC  Github  Actions
+- https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+-  needs: job1  pour pipeline
+
 ## Robot Frameword Test Automation + RPA
 
 https://robotframework.org/
