@@ -12,6 +12,8 @@ public class RandomStringUtil {
 
         // create StringBuffer size of inputString
         StringBuilder sb = new StringBuilder(n);
+        
+        //Update
 
         for (int i = 0; i < n; i++) {
 
